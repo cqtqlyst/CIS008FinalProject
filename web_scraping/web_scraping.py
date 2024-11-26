@@ -140,7 +140,7 @@ def get_location(div):
         # extract the location (text after the <span>)
         return location_info.contents[2].strip() if len(location_info.contents) > 2 else None
 
-for i in range(5):
+for i in range(len(urls)):
     time.sleep(random.uniform(3, 10)) # wait so that we don't get flagged
     
     print(f"working on {urls[i]} now")
@@ -166,6 +166,7 @@ for i in range(5):
         name = get_name(div)
         time_ago = get_time(div)
         location = get_location(div)
+        category = url_categories[i]
 
         # print(price)
         # print(link)
@@ -176,12 +177,12 @@ for i in range(5):
 
         # check that none of the fields are None
         try:
-            if price is not None and link is not None and img is not None and name is not None and time_ago is not None and location is not None:
+            if price is not None and link is not None and img is not None and name is not None and time_ago is not None and location is not None and category is not None:
                 # prepare the insert query
                 cursor.execute('''
-                    INSERT INTO products (name, link, img, price, loc, time)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                ''', (name, link, img, price, location, time_ago))
+                    INSERT INTO products (name, link, img, price, loc, time, category)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                ''', (name, link, img, price, location, time_ago, category))
 
                 # commit the transaction to the database
                 connection.commit()
