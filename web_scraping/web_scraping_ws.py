@@ -101,6 +101,9 @@ html = driver.page_source
 
 all_components.extend(filter_html(html))
 
+# with open('div_analysis.html', 'w', encoding='utf-8') as file:
+#     file.write(str(all_components[0]))
+
 random_component = random.choice(all_components)
 
 def remove_price_info(div):
