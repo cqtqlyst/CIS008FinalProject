@@ -13,13 +13,13 @@ def connect_db():
 def fetch_products():
     conn = connect_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, name, price,category FROM products")  # SQL query
+    cursor.execute("SELECT id, name, price,category, img FROM products")  # SQL query
     rows = cursor.fetchall()
     conn.close()
 
     # Convert rows into a list of dictionaries
     products = [
-        {'id': row[0], 'name': row[1], 'price': row[2],'category': row[3]}
+        {'id': row[0], 'name': row[1], 'price': row[2],'category': row[3],'img': row[4]}
         for row in rows
     ]
     return products
@@ -27,33 +27,40 @@ def fetch_product_by_id(product_id):
     conn = connect_db()
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT id, name, price, category FROM products WHERE id = ?", (product_id,))
+        cursor.execute("SELECT id, name, price, category, img FROM products WHERE id = ?", (product_id,))
         row = cursor.fetchone()
     except Exception as e:
         row = None
     conn.close()
     if row:
-        return {'id': row[0], 'name': row[1], 'price': row[2], 'category': row[3]}
+        return {'id': row[0], 'name': row[1], 'price': row[2], 'category': row[3],'img': row[4]}
     return None
 
 #main page layout
 def main_page_layout():
-    products = fetch_products()  # Fetch products from the database
-
-    # Extract unique categories
+    products = fetch_products()
     categories = list(set(product['category'] for product in products))
-
-    # Build the main page layout with categories only
+    
+    category_cards = [
+        dbc.Card(
+            dbc.CardBody([
+                html.H5(category, className="card-title"),
+                dbc.Button("Explore", href=f"/products/{category}", color="primary", className="mt-3")
+            ]),
+            style={"margin-bottom": "20px", "text-align": "center"}
+        ) for category in categories
+    ]
+    
     return html.Div([
-        html.H1("Welcome to Our Store"),
-        html.Div([
-            html.H2("Categories"),
-            html.Ul([
-                html.Li(dcc.Link(category, href=f"/products/{category}"))
-                for category in categories
-            ])
+        html.H1("Welcome to Our Store!", style={"text-align": "center", "margin-bottom": "40px"}),
+        dbc.Container([
+            dbc.Row([
+                dbc.Col(card, width=4) for card in category_cards  # Responsive grid
+            ], className="gy-4")  # Adds spacing between rows
         ]),
-        dcc.Link("View All Products", href="/products", style={"margin-top": "20px", "display": "block"})
+        dbc.Row([
+            dbc.Col(dbc.Button("View All Products", href="/products", color="secondary", className="mt-4"), width={"size": 2, "offset": 5})
+        ])
     ])
 
 # Product list page layout for a specific catalog
@@ -66,15 +73,28 @@ def product_list_by_category_layout(category):
             html.H1(f"No products found in {category}."),
             dcc.Link("Back to categories", href="/", style={"margin-top": "20px", "display": "block"})
         ])
+    product_cards = [
+        dbc.Card(
+            dbc.CardBody([
+                html.H5(product['name'], className="card-title"),
+                html.Img(src=product['img'], className="card-img-top", style={"border-radius": "15px"}),  # Dynamic image
+                html.P(f"Price: ${product['price']:.2f}", className="card-text"),
+                dbc.Button("View Details", href=f"/product/{product['id']}", color="info", className="mt-2")
+            ]),
+            style={"margin-bottom": "20px", "text-align": "center"}
+        ) for product in filtered_products
+    ]
 
     return html.Div([
-        html.H1(f"Products in {category}"),
-        html.Ul([
-            html.Li(dcc.Link(f"{product['name']} - ${product['price']:.2f}", href=f"/product/{product['id']}"))
-            for product in filtered_products
+        html.H1(f"Products in {category}", style={"text-align": "center", "margin-bottom": "30px"}),
+        dbc.Container([
+            dbc.Row([
+                dbc.Col(card, width=4) for card in product_cards
+            ], className="gy-4")
         ]),
-        dcc.Link("Back to categories", href="/", style={"margin-top": "20px", "display": "block"})
+        dbc.Button("Back to Categories", href="/", color="warning", className="mt-4", style={"margin-left": "20px"})
     ])
+
 
 
 
@@ -94,13 +114,25 @@ def product_list_page_layout():
 def product_detail_layout(product_id):
     product = fetch_product_by_id(product_id)  # Fetch product data by ID
     if not product:
-        return html.Div(["Product not found.", dcc.Link("Go back to catalog", href='/')])
+        return html.Div([
+            html.H1("Product Not Found", style={"text-align": "center", "margin-bottom": "20px"}),
+            dbc.Button("Back to Categories", href="/", color="danger", className="mt-4")
+        ])
+
 
     return html.Div([
-        html.H1(f"Details for {product['name']}"),
-        html.P(f"Category: {product['category']}"),
-        html.P(f"Price: ${product['price']:.2f}"),
-        dcc.Link("Back to catalog", href="/", style={"margin-top": "20px", "display": "block"})
+        html.H1(product['name'], style={"text-align": "center", "margin-bottom": "30px"}),
+        dbc.Container([
+            dbc.Row([
+                dbc.Col(html.Img(src=product['img'], style={"border-radius": "15px", "width": "100%"}), width=6),  # Dynamic image
+                dbc.Col([
+                    html.H4(f"Category: {product['category']}", className="mb-3"),
+                    html.H4(f"Price: ${product['price']:.2f}", className="mb-4"),
+                    dbc.Button("Back to Categories", href="/", color="primary", className="me-2"),
+                    dbc.Button("View All Products", href="/products", color="secondary")
+                ], width=6)
+            ])
+        ])
     ])
 
 
