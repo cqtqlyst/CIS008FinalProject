@@ -171,6 +171,7 @@ def cart_page_layout():
         html.H1("Your Shopping Cart", style={"text-align": "center", "margin-bottom": "30px"}),
         dbc.Container(cart_rows),
         dbc.Button("Checkout", href="/checkout", color="success", className="mt-4"),
+        dbc.Button("Back to Categories", href="/", color="primary", className="mt-4")
     ])
 
 # Checkout page layout
