@@ -19,13 +19,13 @@ def connect_db():
 def fetch_products():
     conn = connect_db()
     cursor = conn.cursor()
-    cursor.execute("SELECT id, name, price,category, img FROM products")  # SQL query
+    cursor.execute("SELECT id, name, price,category, img,description FROM products")  # SQL query
     rows = cursor.fetchall()
     conn.close()
 
     # Convert rows into a list of dictionaries
     products = [
-        {'id': row[0], 'name': row[1], 'price': row[2],'category': row[3],'img': row[4]}
+        {'id': row[0], 'name': row[1], 'price': row[2],'category': row[3],'img': row[4],'description': row[5]}
         for row in rows
     ]
     return products
@@ -33,13 +33,13 @@ def fetch_product_by_id(product_id):
     conn = connect_db()
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT id, name, price, category, img FROM products WHERE id = ?", (product_id,))
+        cursor.execute("SELECT id, name, price, category, img, description FROM products WHERE id = ?", (product_id,))
         row = cursor.fetchone()
     except Exception as e:
         row = None
     conn.close()
     if row:
-        return {'id': row[0], 'name': row[1], 'price': row[2], 'category': row[3],'img': row[4]}
+        return {'id': row[0], 'name': row[1], 'price': row[2], 'category': row[3],'img': row[4],'description': row[5]}
     return None
 
 #main page layout
@@ -140,6 +140,7 @@ def product_detail_layout(product_id):
                 dbc.Col([
                     html.H4(f"Category: {product['category']}", className="mb-3"),
                     html.H4(f"Price: ${product['price']:.2f}", className="mb-4"),
+                    html.P(product['description'], style={"font-size": "16px", "margin-bottom": "20px"}),
                     dbc.Button("Add to Cart", id={'type': 'add-to-cart', 'index': product['id']}, color="success", className="mt-2"),
                     dbc.Button("Back to Categories", href="/", color="primary", className="me-2"),
                     dbc.Button("View All Products", href="/products", color="secondary")
