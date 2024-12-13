@@ -261,4 +261,4 @@ def unified_callback(pathname, add_clicks, remove_clicks, add_ids, remove_ids):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)
